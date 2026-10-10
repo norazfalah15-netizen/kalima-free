@@ -1596,8 +1596,7 @@ function showBooks(){
     const done = pr && pr.max >= n - 1;
     el.className = 'tile';
     el.innerHTML = '<div class="ico">' + b.icon + '</div><div><div class="en-t" lang="en">' + esc(b.title) +
-      '</div><p>' + kw(b.chapters.reduce((t, c) => t + (c.keyWords || []).length, 0)) + ' جديدة، ' +
-      (b.chapters[0].keyWords || []).length + ' في كل فصل</p>' +
+      '</div>' +
       (pr ? '<div class="bprog' + (done ? ' done' : '') + '">' + (done ? '✓ قرأته كامل' : '📖 وصلت صفحة ' + (pr.pg + 1) + ' من ' + n) + '</div>' : '') +
       '<div class="tags">' + (b.grammar || []).map(g => '<span class="tag">' + esc(g) + '</span>').join('') + '</div></div>';
     /* reopen where they stopped; a finished book starts again from page 1 */
