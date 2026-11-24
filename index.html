@@ -586,22 +586,57 @@
     <b>التدريب المجاني جاهز</b>
     <p>اكتب إيميلك ورقمك وابدأ على طول</p>
     <input type="email" id="lgEmail" placeholder="name@email.com" autocomplete="email" inputmode="email" aria-label="الإيميل">
-    <input type="tel" id="lgPhone" placeholder="+965 5000 0000" autocomplete="tel" inputmode="tel" aria-label="رقم الجوال">
+    <div class="lg-w">
+      <input type="text" id="lgCountry" class="lg-ctry" placeholder="اكتب اسم دولتك" autocomplete="off" aria-label="الدولة">
+      <div class="lg-list" id="lgList" hidden></div>
+    </div>
+    <input type="tel" id="lgPhone" placeholder="رقم الجوال" autocomplete="tel-national" inputmode="tel" aria-label="رقم الجوال">
     <div class="lg-err" id="lgErr" role="alert"></div>
     <button type="submit" class="lg-btn" id="lgBtn">ابدأ</button>
   </form>
 </div>
+<style>
+.lg-w{position:relative}
+.lg-card input.lg-ctry{direction:rtl;text-align:right;font:500 16px var(--ar)}
+.lg-list{position:absolute;top:calc(100% - 6px);right:0;left:0;z-index:5;background:#fff;border:1.5px solid var(--line);border-radius:14px;max-height:190px;overflow:auto;box-shadow:0 14px 30px -10px rgba(28,38,53,.3);text-align:right}
+.lg-list[hidden]{display:none}
+.lg-it{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;font-size:15px;cursor:pointer;color:var(--ink)}
+.lg-it:active,.lg-it:hover{background:var(--tint)}
+.lg-it span{direction:ltr;color:var(--soft2);font-family:var(--en);font-size:14px}
+</style>
 <script>
 (function(){
-  var K='kalimaLeadOk', g=document.getElementById('lgGate'), f=document.getElementById('lgForm');
+  var C=[['الكويت','965'],['السعودية','966'],['الإمارات','971'],['قطر','974'],['البحرين','973'],['عمان','968'],['العراق','964'],['الأردن','962'],['مصر','20'],['لبنان','961'],['سوريا','963'],['فلسطين','970'],['اليمن','967'],['ليبيا','218'],['تونس','216'],['الجزائر','213'],['المغرب','212'],['السودان','249'],['تركيا','90'],['بريطانيا','44'],['أمريكا','1'],['كندا','1'],['ألمانيا','49'],['فرنسا','33'],['الهند','91'],['باكستان','92'],['الفلبين','63'],['إندونيسيا','62'],['أستراليا','61']];
+  function nz(t){return t.replace(/[\u064B-\u065F]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/\s+/g,'').toLowerCase()}
+  var K='kalimaLeadOk', g=document.getElementById('lgGate'), f=document.getElementById('lgForm'),
+      ci=document.getElementById('lgCountry'), ls=document.getElementById('lgList'), sel=C[0];
+  function label(c){return c[0]+' (+'+c[1]+')'}
+  ci.value=label(sel);
+  function draw(q){
+    var n=nz(q), h='', r=C.filter(function(c){return !n||nz(c[0]).indexOf(n)>-1||c[1].indexOf(n)===0});
+    r.forEach(function(c){h+='<div class="lg-it" data-i="'+C.indexOf(c)+'">'+c[0]+'<span>+'+c[1]+'</span></div>'});
+    ls.innerHTML=h||'<div class="lg-it">ما لقيت الدولة</div>'; ls.hidden=false;
+  }
+  ci.addEventListener('focus',function(){ci.select();draw('')});
+  ci.addEventListener('input',function(){draw(ci.value)});
+  ci.addEventListener('blur',function(){setTimeout(function(){ls.hidden=true;ci.value=label(sel)},180)});
+  ls.addEventListener('mousedown',function(e){e.preventDefault()});
+  ls.addEventListener('click',function(e){
+    var t=e.target.closest('.lg-it'); if(!t||t.getAttribute('data-i')===null) return;
+    sel=C[+t.getAttribute('data-i')]; ci.value=label(sel); ls.hidden=true; ci.blur();
+    document.getElementById('lgPhone').focus();
+  });
   try{ if(!localStorage.getItem(K)) g.hidden=false; }catch(e){ g.hidden=false; }
   f.addEventListener('submit',function(ev){
     ev.preventDefault();
     var em=document.getElementById('lgEmail').value.trim();
-    var ph=document.getElementById('lgPhone').value.replace(/[\s\-()]/g,'').replace(/^00/,'+');
+    var raw=document.getElementById('lgPhone').value.replace(/[\s\-()]/g,'');
+    var ph;
+    if(/^(\+|00)/.test(raw)) ph='+'+raw.replace(/^(\+|00)/,'').replace(/\D/g,'');
+    else ph='+'+sel[1]+raw.replace(/\D/g,'').replace(/^0+/,'');
     var er=document.getElementById('lgErr'), b=document.getElementById('lgBtn');
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ er.textContent='اكتب إيميل صحيح'; return; }
-    if(!/^\+?[0-9]{7,15}$/.test(ph)){ er.textContent='اكتب رقم جوال صحيح'; return; }
+    if(!/^\+[0-9]{8,15}$/.test(ph)){ er.textContent='اكتب رقم جوال صحيح'; return; }
     er.textContent=''; b.disabled=true; b.textContent='لحظة...';
     fetch('https://llzehodvkaddizklaywy.supabase.co/rest/v1/trial_leads',{
       method:'POST',
