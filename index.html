@@ -596,7 +596,11 @@
   </form>
 </div>
 <style>
+.lg-on .wrap,.lg-on .stripe{visibility:hidden}
+.lg-on .wrap *{animation-play-state:paused!important}
 .lg-w{position:relative}
+.lg-list{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
+.lg-it{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .lg-card input.lg-ctry{direction:rtl;text-align:right;font:500 16px var(--ar)}
 .lg-list{position:absolute;top:calc(100% - 6px);right:0;left:0;z-index:5;background:#fff;border:1.5px solid var(--line);border-radius:14px;max-height:190px;overflow:auto;box-shadow:0 14px 30px -10px rgba(28,38,53,.3);text-align:right}
 .lg-list[hidden]{display:none}
@@ -617,16 +621,18 @@
     r.forEach(function(c){h+='<div class="lg-it" data-i="'+C.indexOf(c)+'">'+c[0]+'<span>+'+c[1]+'</span></div>'});
     ls.innerHTML=h||'<div class="lg-it">ما لقيت الدولة</div>'; ls.hidden=false;
   }
-  ci.addEventListener('focus',function(){ci.select();draw('')});
-  ci.addEventListener('input',function(){draw(ci.value)});
-  ci.addEventListener('blur',function(){setTimeout(function(){ls.hidden=true;ci.value=label(sel)},180)});
-  ls.addEventListener('mousedown',function(e){e.preventDefault()});
-  ls.addEventListener('click',function(e){
-    var t=e.target.closest('.lg-it'); if(!t||t.getAttribute('data-i')===null) return;
+  function pick(t){
+    if(!t||t.getAttribute('data-i')===null) return;
     sel=C[+t.getAttribute('data-i')]; ci.value=label(sel); ls.hidden=true; ci.blur();
-    document.getElementById('lgPhone').focus();
+  }
+  ci.addEventListener('focus',function(){ci.placeholder=label(sel);ci.value='';draw('')});
+  ci.addEventListener('input',function(){draw(ci.value)});
+  ls.addEventListener('click',function(e){pick(e.target.closest('.lg-it'))});
+  document.addEventListener('pointerdown',function(e){
+    if(!ls.hidden&&!e.target.closest('.lg-w')){ ls.hidden=true; ci.value=label(sel); ci.blur(); }
   });
-  try{ if(!localStorage.getItem(K)) g.hidden=false; }catch(e){ g.hidden=false; }
+  var ON=document.documentElement.classList;
+  try{ if(!localStorage.getItem(K)){ g.hidden=false; ON.add('lg-on'); } }catch(e){ g.hidden=false; ON.add('lg-on'); }
   f.addEventListener('submit',function(ev){
     ev.preventDefault();
     var em=document.getElementById('lgEmail').value.trim();
@@ -643,7 +649,7 @@
       headers:{'apikey':'sb_publishable_8mtwca4dj1U99oE40ufSeg_b57gyO4D','Authorization':'Bearer sb_publishable_8mtwca4dj1U99oE40ufSeg_b57gyO4D','Content-Type':'application/json','Prefer':'return=minimal'},
       body:JSON.stringify({email:em,phone:ph,source:'free'})
     }).then(function(r){
-      if(r.ok||r.status===409){ try{localStorage.setItem(K,'1')}catch(e){} g.hidden=true; }
+      if(r.ok||r.status===409){ try{localStorage.setItem(K,'1')}catch(e){} g.hidden=true; ON.remove('lg-on'); }
       else{ er.textContent='صار خطأ، جرّب مرة ثانية'; b.disabled=false; b.textContent='ابدأ'; }
     }).catch(function(){ er.textContent='تأكد من الاتصال وجرّب مرة ثانية'; b.disabled=false; b.textContent='ابدأ'; });
   });
